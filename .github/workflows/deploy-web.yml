@@ -1,0 +1,46 @@
+name: Deploy - Web to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy Web Client
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Bootstrap packages
+        run: npm run bootstrap
+      
+      - name: Build web client
+        run: npm run build:web
+        env:
+          # Production API endpoints (OpenNotes servers)
+          VITE_API_HOST: https://api.opennotes.openlay.com
+          VITE_AUTH_HOST: https://auth.opennotes.openlay.com
+          VITE_SSE_HOST: https://sse.opennotes.openlay.com
+          VITE_MONOGRAPH_HOST: https://mono.opennotes.openlay.com
+          VITE_ATTACHMENTS_HOST: https://files.opennotes.openlay.com
+      
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: opennotes
+          directory: apps/web/build
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: '3'
