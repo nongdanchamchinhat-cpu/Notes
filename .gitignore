@@ -12,4 +12,5 @@ site
 node_modules.backup
 .nx
 /*.patch
-.taskcacherebrand.log
+.taskcache
+rebrand.log
